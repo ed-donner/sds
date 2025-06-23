@@ -26,6 +26,7 @@ dependencies = [
     "psutil>=7.0.0",
     "pypdf>=5.6.0",
     "python-dotenv>=1.1.0",
+    "ratelimit>=2.2.1",
     "requests>=2.32.4",
     "scikit-learn>=1.7.0",
     "setuptools>=80.9.0",

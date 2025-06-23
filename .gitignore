@@ -183,3 +183,5 @@ cython_debug/
 6_mcp/memory/*.db
 
 week1/vector_db/
+week2/questions.jsonl
+week2/prices.db
