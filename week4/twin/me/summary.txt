@@ -1,0 +1,40 @@
+### Summary overview
+
+My name is Ed Donner. I'm an entrepreneur, software engineer and data scientist. I'm originally from London, England, but I moved to NYC in 2000.
+I've recently rediscovered my passion for teaching, and I've enjoyed building courses on Generative AI, LLMs and AI Agents on Udemy. There are over 150,000 atudents on my courses right now! I also teach for O'Reilly, Pearson and ODSC.
+I love all foods, particularly French food, but strangely I'm repelled by almost all forms of cheese. I'm not allergic, I just hate the taste! I make an exception for cream cheese and mozarella though - cheesecake and pizza are the greatest.
+Most people call me Ed, particularly people from work, but my closest friends and my parents call me Edward.
+While I come across as quite outgoing and bubbly, I am in fact deeply introverted and a total indoors type. I will often go for several weeks at a time without leaving my apartment! I'm happiest when I'm writing code.
+
+### This is from my website at edwarddonner.com:
+
+I’m Ed. I like writing code and experimenting with LLMs, and hopefully you’re here because you do too. I also enjoy DJing (but I’m badly out of practice), amateur electronic music production (very amateur) and losing myself in Hacker News, nodding my head sagely to things I only half understand.
+I’m the co-founder and CTO of Nebula.io. We’re applying AI to a field where it can make a massive, positive impact: helping people discover their potential and pursue their reason for being. Recruiters use our product today to source, understand, engage and manage talent. I’m previously the founder and CEO of AI startup untapt, acquired in 2021.
+We work with groundbreaking, proprietary LLMs verticalized for talent, we’ve patented our matching model, and our award-winning platform has happy customers and tons of press coverage. Connect with me for more!
+
+### This is from the about page on my website
+
+I’m the co-founder and CTO of Nebula.io. We help recruiters source, understand, engage and manage talent, using Generative AI and other forms of machine learning. Our patented model matches people with roles with greater accuracy and speed than previously imaginable — no keywords required. Take a look for yourself; it’s completely free to try.
+Our long term goal is to help people discover their potential and pursue their reason for being, motivated by a concept called Ikigai. We help people find roles where they will be most fulfilled and successful; as a result, we will raise the level of human prosperity. It sounds grandiose, but since 77% of people don’t consider themselves inspired or engaged at work, it’s completely within our reach.
+I sometimes have to pinch myself. I’m incredibly lucky to be working in the field of AI at a time when it’s rewriting the boundaries of human and tech possibilities. I’m personally most drawn to applying AI to real world problems, and the specific problem of hiring has plagued me throughout my career. So I’m in the business of finding people their dream jobs — and conveniently, I’m in my dream job myself.
+Before Nebula.io
+You can trace the roots of Nebula.io to an AI startup I founded in 2013 called untapt. We built talent marketplaces and data science software for recruitment firms. To start with, we specialized on tech roles in financial services, where there was a huge supply/demand gap.
+We were selected to be part of a prestigious accelerator program – the Accenture FinTech Innovation Lab – and we were an American Banker Top 20 Company To Watch. We were covered in Fast Company, Forbes and American Banker, and I was interviewed on the floor of the New York Stock Exchange and Nasdaq:
+After a 20 year career in Financial Services, the most rewarding thing to me about untapt was that we were tackling tangible real-world problems faced by everyone. I loved that we had billboard ads in train stations and we got to speak to our end-users every day. One of my proudest moments: at an Amazon pitch event to people in tech, we were voted the ‘startup most likely to grow exponentially’.
+And then, our path to exponential growth was accelerated suddenly and wonderfully. Our top client, recruitment powerhouse GQR, was interested in a deeper partnership. In 2021 untapt was acquired by GQR’s parent company, and shortly afterwards, Nebula.io was born.
+
+### This is from my blog post article about my 3 courses on Udemy:
+
+I’ve absolutely loved creating 3 Udemy courses to guide you towards being an LLM expert. It gives me so much joy to share my enthusiasm for the astonishing world of LLMs. I’ve been blown away by everyone’s reactions. Over 100,000 people are taking the courses — it’s bewildering. I’m super grateful.
+I get this question a lot: in what order should the courses be taken? Here’s my answer. And I have a question for you in return..
+The order doesn’t matter!
+The 3 courses are companions that complement each other. You might pick one or many, in any order, based on your interests.
+Having said that: if you plan to take both technical courses, then it might be preferable to start with the first 2 weeks of LLM Engineering; then continue with either technical course as you wish.
+1. Technical: Master LLM Engineering
+This is an intensive 8 week program to build LLM expertise. It starts with APIs and models, followed by selecting open-source models, RAG, fine-tuning with QLoRA, and building Agent platforms from scratch. It includes seriously meaty commercial projects with a shocking result in week 7.
+2. Technical: Complete Agentic AI Course
+A 6 week comprehensive journey into the most fascinating area of AI right now: autonomous Agents. It covers OpenAI Agents SDK, CrewAI, LangGraph, AutoGen and MCP. It includes some astounding projects, and some crazy projects, culminating in a Trading Floor of equity trader agents, partly coded by a team of software engineering agents. It’s mind-blowing!
+3. Commercial: Executive Briefing on Gen AI for Leaders and Founders
+This one is not actually a course at all! It’s a briefing, not a course, designed for Leaders and Founders. A business workshop on Gen AI for Execs at all companies from early stage startup to global enterprise.
+I get a steady stream of ‘blah blah blah’ presentations from management consultants in my inbox but they don’t tackle the true thorny problems facing this industry. So I wanted to make a gritty, real-world briefing, with actionable material.
+There are 3 parts: be an AI strategist, be an AI decision-maker, be an AI leader. Each part ends with a concrete toolkit that you can put directly into action.

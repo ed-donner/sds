@@ -175,13 +175,13 @@ cython_debug/
 
 .DS_Store
 
-# Ignore Crew engineering team output
-3_crew/engineering_team/output/
-
-# Ignore Accounts database in capstone project
-6_mcp/accounts.db
-6_mcp/memory/*.db
 
 week1/vector_db/
 week2/questions.jsonl
 week2/prices.db
+
+week4/prices.db
+week4/twin/contacts.db
+week4/twin/memory
+
+
