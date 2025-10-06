@@ -43,7 +43,7 @@
 - **2020:** Base Salary: $68,000
 
 ## Other HR Notes
-- **Education:** BS in Computer Science from University of Washington
+- **Education:** BS in Computer Science from University of Manchester
 - **Skills:** Proficient in React, TypeScript, HTML/CSS, Jest for testing. Learning Next.js and GraphQL.
 - **Professional Development:** Completed Advanced React Patterns course (2023). Actively contributes to open-source projects.
 - **Work Style:** Prefers remote work. Strong written communicator. Participates actively in team standups and planning sessions.
