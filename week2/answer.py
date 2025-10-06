@@ -3,6 +3,7 @@ from langchain_chroma import Chroma
 from langchain.chains import create_retrieval_chain
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.documents import Document
 from dotenv import load_dotenv
 from embeddings import get_embeddings
 
@@ -23,10 +24,10 @@ Context:
 
 vectorstore = Chroma(persist_directory=db_name, embedding_function=get_embeddings())
 retriever = vectorstore.as_retriever(search_kwargs={"k": 10})
-llm = ChatOpenAI(temperature=0.7, model_name=MODEL)
+llm = ChatOpenAI(temperature=0, model_name=MODEL)
 
 
-def fetch_context(question: str) -> list:
+def fetch_context(question: str) -> list[Document]:
     """
     Retrieve relevant context documents for a question.
     """
