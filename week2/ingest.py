@@ -25,7 +25,12 @@ def fetch_documents():
         )
         folder_docs = loader.load()
         for doc in folder_docs:
+            filename = os.path.basename(doc.metadata.get("source", ""))
+            filename_without_ext = os.path.splitext(filename)[0]
+            
+            # Add doc metadata
             doc.metadata["doc_type"] = doc_type
+            doc.metadata["filename"] = filename_without_ext
             documents.append(doc)
     return documents
 
@@ -33,6 +38,15 @@ def fetch_documents():
 def create_chunks(documents):
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
     chunks = text_splitter.split_documents(documents)
+    
+    for chunk in chunks:
+        doc_type = chunk.metadata.get("doc_type", "unknown")
+        filename = chunk.metadata.get("filename", "unknown")
+        
+        # Add context that will be embedded
+        context = f"Document Type: {doc_type} | Filename: {filename}\n\n"
+        chunk.page_content = context + chunk.page_content
+    
     return chunks
 
 
