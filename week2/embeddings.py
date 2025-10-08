@@ -1,7 +1,7 @@
 from langchain_openai import OpenAIEmbeddings
 from langchain_huggingface import HuggingFaceEmbeddings
 
-USE_HUGGINGFACE = False
+USE_HUGGINGFACE = True
 MODEL = "all-MiniLM-L6-v2"
 
 

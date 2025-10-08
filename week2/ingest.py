@@ -10,7 +10,7 @@ MODEL = "gpt-4.1-nano"
 db_name = "vector_db"
 knowledge_base_path = "knowledge-base/*"
 
-USE_HUGGINGFACE = False
+USE_HUGGINGFACE = True
 
 load_dotenv(override=True)
 
@@ -36,7 +36,10 @@ def fetch_documents():
 
 
 def create_chunks(documents):
-    text_splitter = RecursiveCharacterTextSplitter(chunk_size=2000, chunk_overlap=250)
+    chunk_size = 2000
+    chunk_overlap = 250
+    print(f"Chunk size: {chunk_size}, Chunk overlap: {chunk_overlap}")
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
     chunks = text_splitter.split_documents(documents)
     
     for chunk in chunks:

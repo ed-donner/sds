@@ -13,7 +13,7 @@ load_dotenv(override=True)
 
 MODEL = "gpt-4.1-nano"
 db_name = "vector_db"
-BATCH_SIZE = 3
+BATCH_SIZE = 5
 
 
 class RetrievalEval(BaseModel):
@@ -188,7 +188,7 @@ async def evaluate_all_answers():
     
     # Process tests in batches of BATCH_SIZE
     for batch_start in range(0, total_tests, BATCH_SIZE):
-        sleep(3)
+        
         batch_end = min(batch_start + BATCH_SIZE, total_tests)
         batch_tests = tests[batch_start:batch_end]
 

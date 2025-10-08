@@ -23,26 +23,24 @@ Context:
 """
 
 RAG_SYSTEM_PROMPT = """
-You are a knowledgeable expert at converting a user question in to something that is RAG friendly.
-A user enters a quesiton anything regarding a given company. Your job is to translate the user entered 
-question in to someting that we can use to query RAG f RAG Vector DB.
-Please keep the size of the response roughtly the same as the prompt. 
-
+You are a knowledgeable expert at converting a user question in to RAG friendly query.
+A user enters a question regarding a given company. Your job is to translate the user entered 
+question in to RAG friendly query that we can use to query RAG Vector DB. Please keep the size of the response roughtly the same as the prompt.  
 """
 
 vectorstore = Chroma(persist_directory=db_name, embedding_function=get_embeddings())
-retriever = vectorstore.as_retriever(search_kwargs={"k": 12})
+retriever = vectorstore.as_retriever(search_kwargs={"k": 10})
 llm = ChatOpenAI(temperature=0, model_name=MODEL)
 
 
-async def raggify_query(question: str) -> str:
+def raggify_query(question: str) -> str:
     """
     Convert a user question into a RAG-friendly format using the RAG_SYSTEM_PROMPT.
     """
     messages = [("system", RAG_SYSTEM_PROMPT), ("user", question)]
     prompt = ChatPromptTemplate.from_messages(messages)
     chain = prompt | llm
-    response = await chain.ainvoke({})
+    response =  chain.invoke({})
     return response.content
 
 
@@ -50,15 +48,17 @@ def fetch_context(question: str) -> list[Document]:
     """
     Retrieve relevant context documents for a question.
     """
-    return retriever.invoke(question)
+    raggified_question =  raggify_query(question)
+    print(f"Raggified question: {raggified_question}")
+    return retriever.invoke(raggified_question)
 
 
 async def answer_question(question: str) -> tuple[str, list]:
     """
     Answer a question using RAG and return the answer and the retrieved context
     """
-    raggified_question = await raggify_query(question)
-    messages = [("system", SYSTEM_PROMPT), ("user", raggified_question)]
+    #raggified_question = await raggify_query(question)
+    messages = [("system", SYSTEM_PROMPT), ("user", question)]
     prompt = ChatPromptTemplate.from_messages(messages)
     question_answer_chain = create_stuff_documents_chain(llm, prompt)
     rag_chain = create_retrieval_chain(retriever, question_answer_chain)
