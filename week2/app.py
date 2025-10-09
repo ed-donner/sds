@@ -54,7 +54,7 @@ def main():
                 )
 
         message.submit(
-            put_message_in_chatbot, inputs=[message, chatbot], outputs=[message, chatbot]
+            put_message_in_chatbot, inputs=[put_message_in_chatbot, chatbot], outputs=[message, chatbot]
         ).then(chat, inputs=chatbot, outputs=[chatbot, context_markdown])
 
     ui.launch(inbrowser=True)

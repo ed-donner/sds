@@ -33,6 +33,13 @@ def fetch_documents():
             documents.append(doc)
     return documents
 
+from langchain_experimental.text_splitter import SemanticChunker
+
+def create_chunks_semantic(documents):
+    embeddings = get_embeddings()
+    text_splitter = SemanticChunker(embeddings=embeddings,breakpoint_threshold_type='percentile',breakpoint_threshold_amount=95)
+    chunks = text_splitter.split_documents(documents)
+    return chunks
 
 def create_chunks(documents):
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200, separators=["\n\n", "\n", " ", ""])
@@ -62,5 +69,6 @@ def create_embeddings(chunks):
 if __name__ == "__main__":
     documents = fetch_documents()
     chunks = create_chunks(documents)
+    # chunks = create_chunks_semantic(documents)
     create_embeddings(chunks)
     print("Ingestion complete")
