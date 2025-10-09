@@ -14,6 +14,10 @@ USE_HUGGINGFACE = True
 
 load_dotenv(override=True)
 
+import os
+from pathlib import Path
+os.chdir(Path(__file__).parent)
+
 
 def fetch_documents():
     folders = glob.glob("knowledge-base/*")
@@ -31,7 +35,7 @@ def fetch_documents():
 
 
 def create_chunks(documents):
-    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200, separators=["\n\n", "\n", " ", ""])
     chunks = text_splitter.split_documents(documents)
     return chunks
 

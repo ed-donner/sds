@@ -5,6 +5,10 @@ from dotenv import load_dotenv
 
 from eval import evaluate_all_retrieval, evaluate_all_answers
 
+import os
+from pathlib import Path
+os.chdir(Path(__file__).parent)
+
 load_dotenv(override=True)
 
 # Color coding thresholds - Retrieval

@@ -5,6 +5,10 @@ from answer import answer_question
 
 load_dotenv(override=True)
 
+import os
+from pathlib import Path
+os.chdir(Path(__file__).parent)
+
 
 def format_context(context):
     result = "## Relevant Context\n\n"

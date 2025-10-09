@@ -78,7 +78,7 @@ def calculate_ndcg(keyword: str, retrieved_docs: list, k: int = 10) -> float:
     return dcg / idcg if idcg > 0 else 0.0
 
 
-def evaluate_retrieval(test: TestQuestion, k: int = 10) -> RetrievalEval:
+def evaluate_retrieval(test: TestQuestion, k: int = 30) -> RetrievalEval:
     """
     Evaluate retrieval performance for a test question.
 

@@ -2,7 +2,8 @@ from langchain_openai import OpenAIEmbeddings
 from langchain_huggingface import HuggingFaceEmbeddings
 
 USE_HUGGINGFACE = True
-MODEL = "all-MiniLM-L6-v2"
+# MODEL = "all-MiniLM-L6-v2"
+MODEL = "BAAI/bge-base-en-v1.5" 
 
 
 def get_embeddings():
