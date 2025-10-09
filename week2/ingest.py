@@ -5,6 +5,7 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_chroma import Chroma
 from embeddings import get_embeddings
 from dotenv import load_dotenv
+from langchain_experimental.text_splitter import SemanticChunker
 
 MODEL = "gpt-4.1-nano"
 db_name = "vector_db"
@@ -33,7 +34,7 @@ def fetch_documents():
             documents.append(doc)
     return documents
 
-from langchain_experimental.text_splitter import SemanticChunker
+
 
 def create_chunks_semantic(documents):
     embeddings = get_embeddings()
