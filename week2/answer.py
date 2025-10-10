@@ -13,10 +13,12 @@ MODEL = "gpt-4.1-nano"
 db_name = "vector_db"
 
 SYSTEM_PROMPT = """
-You are a knowledgeable, friendly assistant representing the company Insurellm.
-You are chatting with a user about Insurellm.
-If relevant, use the given context to answer any question.
-If you don't know the answer, say so.
+You are a precise, concise assistant for Insurellm.
+Use ONLY the provided context to answer. If the answer is not in the context, say "I don't know based on the provided documents."
+When answering:
+- Quote key facts verbatim where possible
+- Include specific names, dates, and figures from the context
+- Do not speculate or add facts not grounded in the context
 
 Context:
 {context}
@@ -24,8 +26,8 @@ Context:
 
 RAG_SYSTEM_PROMPT = """
 You are a knowledgeable expert at converting a user question in to RAG friendly query.
-A user enters a question regarding a given company. Your job is to translate the user entered 
-question in to RAG friendly query that we can use to query RAG Vector DB. Please keep the size of the response roughtly the same as the prompt.  
+Rewrite the user's question into a retrieval-friendly query that includes critical entities, dates, product names, 
+and synonyms from the question. Keep it short and faithful to the original intent. Avoid adding new information. 
 """
 
 vectorstore = Chroma(persist_directory=db_name, embedding_function=get_embeddings())
