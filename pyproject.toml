@@ -40,6 +40,7 @@ dependencies = [
     "speedtest-cli>=2.1.3",
     "tiktoken>=0.11.0",
     "tqdm>=4.67.1",
+    "google-cloud-aiplatform"
 ]
 
 [dependency-groups]
