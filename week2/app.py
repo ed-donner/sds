@@ -1,7 +1,7 @@
 import gradio as gr
 from dotenv import load_dotenv
 
-from answer import answer_question
+from answer2 import answer_question
 
 load_dotenv(override=True)
 
