@@ -1,10 +1,16 @@
 from fastapi import APIRouter
 from fastapi.responses import HTMLResponse
 from datetime import datetime
-import time
 from pydantic import BaseModel, Field
+from dotenv import load_dotenv
+from openai import OpenAI
+from agents import Agent, Runner, function_tool
+import json
 
 hello = APIRouter()
+
+load_dotenv(override=True)
+openai = OpenAI()
 
 @hello.get("/hello_world")
 def hello_world():
@@ -25,12 +31,6 @@ def hello_html():
     """
     return HTMLResponse(content=html_content, status_code=200)
 
-from dotenv import load_dotenv
-from openai import OpenAI
-import json
-
-load_dotenv(override=True)
-openai = OpenAI()
 
 @hello.get("/hello_llm")
 def hello_llm():
@@ -144,6 +144,45 @@ def hello_llm_function_calling(city: str):
         # Return response matching LLMCapabilities schema
     return LLMCapabilities(
         main_response=final_message,
+        capabilities=["Check flight prices", "Provide booking information"],
+        example_use_cases=["Finding ticket prices to various cities"],
+        is_helpful=True
+    )
+
+# start of using agents framework
+@function_tool
+def get_ticket_price_tool(city: str) -> str:
+    """Get the ticket price for flights to a specific city.
+    
+    Args:
+        city (str): The destination city name.
+    """
+    return get_ticket_prices(city)
+
+
+@function_tool
+def is_soccer_city(city: str) -> bool:
+    """Check if a city is known for soccer.
+    
+    Args:
+        city (str): The city name to check.
+    """
+    soccer_cities = ["london", "madrid", "barcelona", "manchester", "buenos aires"]
+    return city.lower() in soccer_cities
+
+@hello.get("/hello_llm_agents", response_model=LLMCapabilities)
+async def hello_llm_agents(city: str):
+    SYSTEM_PROMPT = "you are an airline pricing expert and also a soccer expert and must check if the city is a soccer city. keep your answers very brief. if you don't know the answer, just say you don't know."
+    USER_PROMPT = f"You are looking to fly to {city}. What is the ticket price and let me know if its a soccer city?"
+    agent = Agent(name="PricingAgent", instructions=SYSTEM_PROMPT, tools=[get_ticket_price_tool, is_soccer_city])
+
+    messages = [
+        {"role": "system", "content": SYSTEM_PROMPT},
+        {"role": "user", "content": USER_PROMPT}
+    ]
+    response = await Runner.run(agent, messages)
+    return LLMCapabilities(
+        main_response=response.final_output,
         capabilities=["Check flight prices", "Provide booking information"],
         example_use_cases=["Finding ticket prices to various cities"],
         is_helpful=True
