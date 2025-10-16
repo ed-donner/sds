@@ -6,15 +6,6 @@ from pydantic import BaseModel, Field
 
 hello = APIRouter()
 
-# Define the structured output format
-class LLMCapabilities(BaseModel):
-    """A Pydantic model to define the structure of the LLM's capabilities response."""
-    
-    main_response: str = Field(description="Main response describing what the LLM can do")
-    capabilities: list = Field(description="List of specific capabilities")
-    example_use_cases: list = Field(description="List of example use cases")
-    is_helpful: bool = Field(description="Whether the LLM considers itself helpful")
-
 @hello.get("/hello_world")
 def hello_world():
     return {"message": f"Hello, You! {datetime.now().isoformat()}"}
@@ -34,3 +25,126 @@ def hello_html():
     """
     return HTMLResponse(content=html_content, status_code=200)
 
+from dotenv import load_dotenv
+from openai import OpenAI
+import json
+
+load_dotenv(override=True)
+openai = OpenAI()
+
+@hello.get("/hello_llm")
+def hello_llm():
+    SYSTEM_PROMPT = "You are a helpful assistant that provides information about yourself."
+    USER_PROMPT = "Can you tell me about your capabilities and provide some example use cases?"
+
+    messages = [
+        {"role": "system", "content": SYSTEM_PROMPT},
+        {"role": "user", "content": USER_PROMPT}
+    ]
+
+    response = openai.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=messages,
+        max_tokens=50,
+        temperature=0.7,
+    )
+
+    response_message = response.choices[0].message
+    return {"llm_response": response_message}
+
+ticket_prices = {"london": "$799", "paris": "$899", "tokyo": "$1400", "sydney": "$2999"}
+
+def get_ticket_prices(city: str) -> str:
+    if city.lower() in ticket_prices:
+        return ticket_prices[city.lower()]
+    else:
+        return "Sorry, we don't have ticket prices for that city."
+
+# Define the structured output format
+class LLMCapabilities(BaseModel):
+    """A Pydantic model to define the structure of the LLM's capabilities response."""
+    
+    main_response: str = Field(description="Main response describing what the LLM can do")
+    capabilities: list = Field(description="List of specific capabilities")
+    example_use_cases: list = Field(description="List of example use cases")
+    is_helpful: bool = Field(description="Whether the LLM considers itself helpful")
+
+
+@hello.get("/hello_llm_function_calling", response_model=LLMCapabilities)
+def hello_llm_function_calling(city: str):
+    SYSTEM_PROMPT = "you are an airline pricing expert. keep your answers very brief. if you don't know the answer, just say you don't know."
+    USER_PROMPT = f"You are looking to fly to {city}. What is the ticket price?"
+
+    tools = [
+        {
+            "type": "function",
+            "function": {
+                "name": "get_ticket_prices",
+                "description": "Get the ticket price for flights to a specific city",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "city": {
+                            "type": "string",
+                            "description": "The destination city name"
+                        }
+                    },
+                    "required": ["city"]
+                }
+            }
+        }
+    ]
+    
+    messages = [
+        {"role": "system", "content": SYSTEM_PROMPT},
+        {"role": "user", "content": USER_PROMPT}
+    ]
+    
+    # First API call
+    response = openai.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=messages,
+        tools=tools,
+        tool_choice="auto"
+    )
+    
+    response_message = response.choices[0].message
+    messages.append(response_message)
+    
+    # Check if the model wants to call a function
+    tool_calls = response_message.tool_calls
+    if tool_calls:
+        for tool_call in tool_calls:
+            function_name = tool_call.function.name
+            function_args = json.loads(tool_call.function.arguments)
+            
+            print(f"Calling function {function_name} with args {function_args}")
+            
+            # Call the function
+            if function_name == "get_ticket_prices":
+                function_response = get_ticket_prices(**function_args)
+                
+                # Add function response to messages
+                messages.append({
+                    "role": "tool",
+                    "tool_call_id": tool_call.id,
+                    "content": function_response
+                })
+        
+        # Get final response from the model
+        final_response = openai.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=messages
+        )
+        
+        final_message = final_response.choices[0].message.content
+    else:
+        final_message = response_message.content
+
+        # Return response matching LLMCapabilities schema
+    return LLMCapabilities(
+        main_response=final_message,
+        capabilities=["Check flight prices", "Provide booking information"],
+        example_use_cases=["Finding ticket prices to various cities"],
+        is_helpful=True
+    )
