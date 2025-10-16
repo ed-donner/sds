@@ -204,16 +204,17 @@ def get_tavily_search(search_term: str = "Minnesota Vikings news"):
 
 
 @hello.get("/hello_llm_agents_evaluator")
-async def hello_llm_agents_evaluator(sports_team: str):
+async def hello_llm_agents_evaluator(sports_team: str, desired_positive_sentiment: bool = True):
+    if desired_positive_sentiment:
+        desired_result_sentiment = "positive"
+    else:
+        desired_result_sentiment = "negative"
     fan_instructions = "You are a passionate sports fan who searches the web for the latest news about your favorite team."
-    fan_input = """
-    Search the web and look for some news about the {sports_team}.  Summarize the news you find in a few sentences.
-    """
+    fan_initial_input = f"Search the web and look for some news about the {sports_team}. Summarize the news you find in a few sentences."
 
     evaluator_instructions = "You evaluate whether the story about the sports team."
-    evaluator_input = "Evaluate the story and score it from 1 to 10 on how much it would cheer up a fan having a bad day."
+    evaluator_base_prompt = f"Evaluate the story and score it from 1 to 10 on how much it would cheer up a fan having a bad day."
 
-    ## Now let's define 2 important Pydantic Objects to describe our Data
     class FanOutput(BaseModel):
         story: str = Field(description="A short story summary about the sports team.")
         url: str = Field(description="A url to a relevant article about the sports team.")
@@ -221,34 +222,66 @@ async def hello_llm_agents_evaluator(sports_team: str):
     class EvaluatorOutput(BaseModel):
         score: int = Field(description="A score from 1 to 10 on how much the story would cheer up a fan having a bad day.")
         reasoning: str = Field(description="A short reasoning about why you gave the score.")
+        suggested_improvements: str = Field(description=f"A short suggestion on how to improve your search terms to get your {desired_result_sentiment} desired results.")
         url: str = Field(description="A url to a relevant article about the sports team.")
 
         def is_amazingly_positive(self) -> bool:
-            return self.score >= 9
+            return self.score >= 9 
+        
+        def is_amazingly_negative(self) -> bool:
+            return self.score <= 3
+        
+        def search_improvement_prompt(self) -> str:
+            return f"Make sure to update search for {sports_team}. {self.suggested_improvements}"
+        
+        def meets_target(self, positive: bool) -> bool:
+            """Check if score meets the target sentiment"""
+            if positive:
+                return self.is_amazingly_positive()
+            else:
+                return self.is_amazingly_negative()
 
     fan_agent = Agent(name="FanAgent", instructions=fan_instructions, tools=[get_tavily_search], output_type=FanOutput)
-    result = await Runner.run(fan_agent, fan_input)
+    
+    # Initial run
+    result = await Runner.run(fan_agent, fan_initial_input)
+    fan_output = result.final_output_as(FanOutput)
 
     evaluator_agent = Agent(name="EvaluatorAgent", instructions=evaluator_instructions, output_type=EvaluatorOutput)
-    evaluator_input = evaluator_input + f"Here is the story: {result.final_output_as(FanOutput).story}"
+    evaluator_input = f"{evaluator_base_prompt}\n\nHere is the story: {fan_output.story}"
     result = await Runner.run(evaluator_agent, evaluator_input)
-
     formatted_result = result.final_output_as(EvaluatorOutput)
 
+    combine_attempts = [(fan_output, formatted_result)]
+    
+    attempt_count = 1
+    max_attempts = 5
 
-    combine_attempts = []
-    fan_latest = f"You were originally given the following story \n\n{fan_input}\n\n"
-    remaining_attempts = 5
-    while not formatted_result.is_amazingly_positive() and remaining_attempts:
-        print(remaining_attempts)
-        remaining_attempts -= 1
-        fan_input += f"You responded with this story:\n\n{fan_input}\n\nYou received this feedback:\n\n{formatted_result}\n\n"
-        fan_input += "Now respond with an improved story that adresses the feedback. Do not directly reference the feedback.\n\n"
-        result = await Runner.run(fan_agent, fan_input)
+    while not formatted_result.meets_target(desired_positive_sentiment) and attempt_count < max_attempts:
+        print(f"Attempt {attempt_count} of {max_attempts}, Score: {formatted_result.score}, Reasoning: {formatted_result.reasoning}\n")
+        attempt_count += 1
+
+        # Build fresh feedback prompt
+        feedback_prompt = f"""Your previous search returned this story:
+{fan_output.story}
+
+This received a score of {formatted_result.score}/10.
+
+Evaluator feedback: {formatted_result.reasoning}
+
+Suggestions: {formatted_result.search_improvement_prompt()}
+
+Please search again with improved search terms focusing on more {desired_result_sentiment} news about {sports_team}."""
+        
+        # Get new story
+        result = await Runner.run(fan_agent, feedback_prompt)
         fan_output = result.final_output_as(FanOutput)
-        result = await Runner.run(evaluator_agent, f"{evaluator_input}{fan_output.story}")
-        print(f'for result atempt {3 - remaining_attempts}, got {result}')
+        
+        # Evaluate new story (fresh evaluation)
+        evaluator_input = f"{evaluator_base_prompt}\n\nHere is the story: {fan_output.story}"
+        result = await Runner.run(evaluator_agent, evaluator_input)
         formatted_result = result.final_output_as(EvaluatorOutput)
+        
         combine_attempts.append((fan_output, formatted_result))
 
     return {"llm_response": combine_attempts}
