@@ -43,7 +43,8 @@ dependencies = [
     "google-cloud-aiplatform",
     "uvicorn>=0.37.0",
     "fastapi>=0.119.0",
-    "pydantic>=2.10.2"
+    "pydantic>=2.10.2",
+    "tavily-python>=0.7.12"
 ]
 
 [dependency-groups]

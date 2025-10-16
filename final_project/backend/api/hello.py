@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 from openai import OpenAI
 from agents import Agent, Runner, function_tool
 import json
+from tavily import TavilyClient
 
 hello = APIRouter()
 
@@ -189,3 +190,65 @@ async def hello_llm_agents(city: str):
     response = await Runner.run(agent, messages)
     final_response = response.final_output_as(SoccerCity)
     return {"llm_response": final_response}
+
+
+# start of llm agents with search, evaulation loops 
+
+
+@function_tool
+def get_tavily_search(search_term: str = "Minnesota Vikings news"):
+    """Initialize Tavily search tool"""
+    tavily_client = TavilyClient()
+    response = tavily_client.search(search_term, num_results=5, time_range="day")
+    return response
+
+
+@hello.get("/hello_llm_agents_evaluator")
+async def hello_llm_agents_evaluator(sports_team: str):
+    fan_instructions = "You are a passionate sports fan who searches the web for the latest news about your favorite team."
+    fan_input = """
+    Search the web and look for some news about the {sports_team}.  Summarize the news you find in a few sentences.
+    """
+
+    evaluator_instructions = "You evaluate whether the story about the sports team."
+    evaluator_input = "Evaluate the story and score it from 1 to 10 on how much it would cheer up a fan having a bad day."
+
+    ## Now let's define 2 important Pydantic Objects to describe our Data
+    class FanOutput(BaseModel):
+        story: str = Field(description="A short story summary about the sports team.")
+        url: str = Field(description="A url to a relevant article about the sports team.")
+
+    class EvaluatorOutput(BaseModel):
+        score: int = Field(description="A score from 1 to 10 on how much the story would cheer up a fan having a bad day.")
+        reasoning: str = Field(description="A short reasoning about why you gave the score.")
+        url: str = Field(description="A url to a relevant article about the sports team.")
+
+        def is_amazingly_positive(self) -> bool:
+            return self.score >= 9
+
+    fan_agent = Agent(name="FanAgent", instructions=fan_instructions, tools=[get_tavily_search], output_type=FanOutput)
+    result = await Runner.run(fan_agent, fan_input)
+
+    evaluator_agent = Agent(name="EvaluatorAgent", instructions=evaluator_instructions, output_type=EvaluatorOutput)
+    evaluator_input = evaluator_input + f"Here is the story: {result.final_output_as(FanOutput).story}"
+    result = await Runner.run(evaluator_agent, evaluator_input)
+
+    formatted_result = result.final_output_as(EvaluatorOutput)
+
+
+    combine_attempts = []
+    fan_latest = f"You were originally given the following story \n\n{fan_input}\n\n"
+    remaining_attempts = 5
+    while not formatted_result.is_amazingly_positive() and remaining_attempts:
+        print(remaining_attempts)
+        remaining_attempts -= 1
+        fan_input += f"You responded with this story:\n\n{fan_input}\n\nYou received this feedback:\n\n{formatted_result}\n\n"
+        fan_input += "Now respond with an improved story that adresses the feedback. Do not directly reference the feedback.\n\n"
+        result = await Runner.run(fan_agent, fan_input)
+        fan_output = result.final_output_as(FanOutput)
+        result = await Runner.run(evaluator_agent, f"{evaluator_input}{fan_output.story}")
+        print(f'for result atempt {3 - remaining_attempts}, got {result}')
+        formatted_result = result.final_output_as(EvaluatorOutput)
+        combine_attempts.append((fan_output, formatted_result))
+
+    return {"llm_response": combine_attempts}
