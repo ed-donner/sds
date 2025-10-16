@@ -170,20 +170,22 @@ def is_soccer_city(city: str) -> bool:
     soccer_cities = ["london", "madrid", "barcelona", "manchester", "buenos aires"]
     return city.lower() in soccer_cities
 
-@hello.get("/hello_llm_agents", response_model=LLMCapabilities)
+class SoccerCity(BaseModel):
+    is_soccer_city: bool = Field(description="Whether the city is known for soccer")
+    description: str = Field(description="A short descpription of why a soccer city or not")
+    airline_ticket_price: str = Field(description="The airline ticket price to the city. If unknown, say so.")
+
+
+@hello.get("/hello_llm_agents")
 async def hello_llm_agents(city: str):
     SYSTEM_PROMPT = "you are an airline pricing expert and also a soccer expert and must check if the city is a soccer city. keep your answers very brief. if you don't know the answer, just say you don't know."
     USER_PROMPT = f"You are looking to fly to {city}. What is the ticket price and let me know if its a soccer city?"
-    agent = Agent(name="PricingAgent", instructions=SYSTEM_PROMPT, tools=[get_ticket_price_tool, is_soccer_city])
+    agent = Agent(name="PricingAgent", instructions=SYSTEM_PROMPT, tools=[get_ticket_price_tool, is_soccer_city], output_type=SoccerCity)
 
     messages = [
         {"role": "system", "content": SYSTEM_PROMPT},
         {"role": "user", "content": USER_PROMPT}
     ]
     response = await Runner.run(agent, messages)
-    return LLMCapabilities(
-        main_response=response.final_output,
-        capabilities=["Check flight prices", "Provide booking information"],
-        example_use_cases=["Finding ticket prices to various cities"],
-        is_helpful=True
-    )
+    final_response = response.final_output_as(SoccerCity)
+    return {"llm_response": final_response}
