@@ -40,7 +40,10 @@ dependencies = [
     "speedtest-cli>=2.1.3",
     "tiktoken>=0.11.0",
     "tqdm>=4.67.1",
-    "google-cloud-aiplatform"
+    "google-cloud-aiplatform",
+    "uvicorn>=0.37.0",
+    "fastapi>=0.119.0",
+    "pydantic>=2.10.2"
 ]
 
 [dependency-groups]
