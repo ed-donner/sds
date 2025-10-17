@@ -2,9 +2,9 @@
 
 _In Cursor, right click on this file in the Explorer and select "Open Preview" to see it with formatting, or look at the version online in Github._
 
-In weeks 4 and 6, we will make use of NodeJS on your computer.
+In week 4, we will make use of NodeJS on your computer.
 
-PC users take note: if you are using WSL (which you will need to in Week 6), then at that point you will need to install node again on your Ubuntu side.
+PC users take note: you will need to install node again on your Ubuntu side.
 
 ## Instructions for installing Node
 
@@ -24,7 +24,7 @@ When complete, check that this works in the notebook. You may need to quit and r
 
 ## Installing Playwright
 
-Playwright is the browser automation software from Microsoft that we use in weeks 4 and 6.
+Playwright is the browser automation software from Microsoft that we use in week 4.
 
 On Mac / PC:  
 `uv run playwright install`

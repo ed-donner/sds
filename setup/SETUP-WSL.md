@@ -8,9 +8,9 @@ _NOTE 2: In Cursor, remember to Right Click on this file in the Explorer and cho
 
 Welcome back to Setup-land, PC people!
 
-I expect you're here because you've reached Week 6, and discovered the unpleasant news that MCP Servers are only working on Windows under WSL.
+The unpleasant news is that MCP Servers are only working on Windows under WSL.
 
-I'm so sorry to put you through this! The good news is, several students have confirmed that MCP Servers are working under WSL. Also, WSL is generally considered a great way to build on Windows. And the other good news is that you've already done the setup once, so surely this will be relatively painless? Fingers crossed.
+I'm so sorry to put you through this! The good news is, WSL is generally considered a great way to build on Windows. And the other good news is that you've already done the setup once, so surely this will be relatively painless? Fingers crossed.
 
 ### Part 1: Install WSL if you haven't before
 
