@@ -64,4 +64,11 @@ env = {"PATH": "/home/user/.nvm/versions/node/v22.18.0/bin:" + os.environ["PATH"
 playwright_params = {"command": "npx","args": [ "@playwright/mcp@latest"], "env": env}
 ```
 
-If that doesn't work, let me know! A heartfelt thank you to Radoslav R. and André R. for battling with this, finding the fixes and sharing them!
+To check that everything is working:
+
+Open a cursor terminal:
+
+`cd week4`  
+`uv run validate.py`
+
+And if you get a current CNN headline then you're in good shape.
