@@ -199,7 +199,7 @@ async def hello_llm_agents(city: str):
 def get_tavily_search(search_term: str = "Minnesota Vikings news"):
     """Initialize Tavily search tool"""
     tavily_client = TavilyClient()
-    response = tavily_client.search(search_term, num_results=5, time_range="day")
+    response = tavily_client.search(search_term, num_results=5, time_range="day", topic="news")
     return response
 
 
