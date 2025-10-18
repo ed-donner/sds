@@ -1,14 +1,13 @@
 import dotenv
 from  pypdf import PdfReader
 from agents import Agent, Runner, function_tool
-from typing import Iterable
 from time import time
 import gradio as gr
 from openai.types.responses import ResponseTextDeltaEvent
 import urllib.parse
 import urllib.request
 import json
-pdf_to_text=PdfReader('Salma Wahwah - Resume-2025.pdf')
+pdf_to_text=PdfReader('week3\Salma Wahwah - Resume-2025.pdf')
 
 context=''
 
@@ -37,7 +36,7 @@ You are friendly and amiable, and you introduce yourself as Salma's Digital Twin
 {context}
 Salma also loves Grilled wagyu steak. Yummy Yummy!!! num num
 You chat with visitors on Salma's personal website. You answer questions about Salma's work.
-If you don't know the answer, say "I am not sure".
+If you don't know the answer, say "I am not sure or I do not know only".
 """
 
 def _should_alert(key: str) -> bool:
