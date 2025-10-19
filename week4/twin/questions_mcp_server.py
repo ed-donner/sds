@@ -7,8 +7,7 @@ mcp = FastMCP("questions_server")
 @mcp.tool()
 async def get_questions_with_answer() -> str:
     """
-    Retrieve from the database all the questions that have been recorded
-    where you have been provided with an official answer.
+    Retrieve from the database all the recorded questions where you have been provided with an official answer.
 
     Returns:
         A string containing the questions with their official answers.
