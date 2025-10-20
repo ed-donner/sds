@@ -188,3 +188,10 @@ week2/vector_db/
 week2/preprocessed_db/
 
 week4/twin/memory/
+credentials/*
+uv.lock
+activities.txt
+linkedin_profile.txt
+news.md 
+output.md
+*josh.ipynb
