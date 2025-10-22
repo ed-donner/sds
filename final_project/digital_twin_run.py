@@ -1,5 +1,5 @@
 from dotenv import load_dotenv
-from agents import Agent, Runner, trace
+from agents import Agent, Runner, trace, function_tool
 import gradio as gr
 from pydantic import BaseModel, Field
 from openai import OpenAI
@@ -7,9 +7,49 @@ import asyncio
 import sqlite3
 import pandas as pd
 from agents.mcp import MCPServerStdio
+import os
+import requests
 
-
+# Load environment variables FIRST
 load_dotenv(override=True)
+
+pushover_user = os.getenv("PUSHOVER_USER")
+pushover_token = os.getenv("PUSHOVER_TOKEN")
+pushover_url = "https://api.pushover.net/1/messages.json"
+
+# Verify environment variables for push notifications
+if not pushover_user or not pushover_token:
+    print("⚠️  WARNING: PUSHOVER_USER or PUSHOVER_TOKEN not found in environment")
+    print(f"   PUSHOVER_USER: {'✓' if pushover_user else '✗'}")
+    print(f"   PUSHOVER_TOKEN: {'✓' if pushover_token else '✗'}")
+else:
+    print(f"✓ Push notification credentials loaded")
+
+def send_push_notification(message: str):
+    payload = {"user": pushover_user, "token": pushover_token, "message": message}
+    try:
+        response = requests.post(pushover_url, data=payload)
+        print(f"Push notification response: {response.status_code}, {response.text}")
+        return response.status_code == 200
+    except Exception as e:
+        print(f"Error sending push notification: {e}")
+        return False
+
+@function_tool
+def push(message: str) -> str:
+    """Send a text message as a push notification to Josh with this brief message
+
+    Args:
+        message: The short text message to push to Josh
+    """
+    print(f"[PUSH TOOL CALLED] Sending message: {message}")
+    success = send_push_notification(message)
+    if success:
+        return "Push notification sent successfully"
+    else:
+        return "Push notification failed to send"
+
+
 openai = OpenAI()
 
 # MCP Server params
@@ -42,9 +82,10 @@ def get_database_contents():
         return df
 
 class ChatResponse(BaseModel):
-    llm_response: str = Field(description="The response from the LLM based on the LinkedIn profile")
-    should_record: bool = Field(description="Indicates if the response should be recorded in the database")
+    user_question: str = Field(description="The question asked by the user")
     is_answerable: bool = Field(description="Indicates if the question was answerable based on existing data")
+    answer: str = Field(description="The answer to the user's question, if available")
+    llm_response: str = Field(description="The response from the LLM based on the LinkedIn profile")
 
 
 async def chat(message, history):
@@ -53,16 +94,33 @@ async def chat(message, history):
     
 
     # Let the agent naturally decide when to use tools
-    SYSTEM_PROMPT = f"""You are a digital twin of Joshua Janzen.
+    SYSTEM_PROMPT = f"""
+    You are a digital twin of this user.
 
     LinkedIn Profile:
     {linkedin_profile}
 
-    You have access to tools that let you:
-    - Check previously recorded answers
-    - Record new Q&A pairs when appropriate
+    TOOLS YOU CAN CALL (via MCP):
+    - get_questions_with_answer() → recall known Q&A
+    - get_questions_without_answer() → list unanswered Qs
+    - record_question_with_answer(question, answer) → store new knowledge
+    - record_question_with_no_answer(question) → store an unknown as unanswered
 
-    Use these tools when helpful, but answer from the profile when you can."""
+    TURN CONTRACT — FOLLOW EXACTLY:
+    1) Read the latest user message as the variable `user_question`.
+    2) Decide if you can answer from the profile or prior data.
+    - If yes, set `is_answerable=True` and put the final answer string in `answer`.
+    - If no, set `is_answerable=False` and leave `answer` empty.
+    3) You MUST call EXACTLY ONE of the two logging tools every turn BEFORE giving your final reply:
+    - If `is_answerable=True` → call record_question_with_answer(question=user_question, answer=answer)
+    - Else → call record_question_with_no_answer(question=user_question)
+    4) After the tool call finishes, produce your final message to the user in `llm_response`.
+    5) Do not skip step 3 under any circumstance. Do not call both tools.
+    6) If is_answerable=False, send a push notification with the tool to Josh to tell him the question you couldn't answer, so that he adds it to the knowledge base.
+
+    Output must conform to the ChatResponse schema. Do not fabricate facts.
+    """
+
     
     # Initialize MCP server and agent with it
     with trace("digital_twin_run_chat"):
@@ -72,7 +130,8 @@ async def chat(message, history):
                 instructions=SYSTEM_PROMPT,
                 output_type=ChatResponse,
                 mcp_servers=[server],
-                model="gpt-4o"  # Using a more capable model for better tool use
+                tools=[push],
+                model="gpt-4o-mini"  
             )
 
             # Build messages with system prompt
@@ -87,8 +146,7 @@ async def chat(message, history):
                 messages.append(clean_msg)
 
             # Add current user message with explicit instruction
-            user_message = f"{message}\n\n[Remember: Check recorded answers first using get_questions_with_answer()]"
-            messages.append({"role": "user", "content": user_message})
+            messages.append({"role": "user", "content": message})
 
             response = await Runner.run(agent, messages)
             final_response = response.final_output_as(ChatResponse).llm_response
@@ -121,20 +179,20 @@ async def main():
         print(f"Warning: MCP server test failed: {e}")
     
     # Create Gradio interface with tabs
-    with gr.Blocks(title="Joshua's Digital Twin") as demo:
-        gr.Markdown("# Joshua Janzen's Digital Twin")
-        gr.Markdown("Ask questions about Joshua, and the system will track what it knows and doesn't know.")
-        
+    with gr.Blocks(title="Digital Twin") as demo:
+        gr.Markdown("# Digital Twin")
+        gr.Markdown("Ask questions about this user, and the system will track what it knows and doesn't know.")
+
         with gr.Tabs():
             with gr.Tab("Chat"):
                 chat_interface = gr.ChatInterface(
                     chat, 
                     type="messages",
                     examples=[
-                        "What is Josh's favorite food?",
-                        "Where did Josh go to university?",
-                        "What is Josh's current role?",
-                        "What are Josh's hobbies?"
+                        "What is this user's favorite food?",
+                        "Where did this user go to university?",
+                        "What is this user's current role?",
+                        "What are this user's hobbies?"
                     ]
                 )
             
