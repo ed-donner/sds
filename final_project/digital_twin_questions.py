@@ -36,7 +36,7 @@ def record_question_with_answer(question: str, answer: str) -> str:
         return f"Successfully recorded question and answer: '{question[:50]}...'"
 
 
-def get_questions_with_no_answer() -> str:
+def get_questions_without_answer() -> str:
     """Get all questions that don't have answers."""
     with sqlite3.connect(DB) as conn:
         cursor = conn.cursor()

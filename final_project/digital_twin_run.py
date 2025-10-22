@@ -1,5 +1,5 @@
 from dotenv import load_dotenv
-from agents import Agent, Runner
+from agents import Agent, Runner, trace
 import gradio as gr
 from pydantic import BaseModel, Field
 from openai import OpenAI
@@ -43,65 +43,57 @@ def get_database_contents():
 
 class ChatResponse(BaseModel):
     llm_response: str = Field(description="The response from the LLM based on the LinkedIn profile")
+    should_record: bool = Field(description="Indicates if the response should be recorded in the database")
+    is_answerable: bool = Field(description="Indicates if the question was answerable based on existing data")
 
 
 async def chat(message, history):
     linkedin_profile = load_linkedin_profile()
     linkedin_profile = linkedin_profile + "\nAdditional info: Josh's favorite food is ice cream."
     
-    # Enhanced system prompt to FORCE MCP tool usage
-    SYSTEM_PROMPT = f"""You are a digital twin of Joshua Janzen. Only answer questions about him.
 
-Here is Joshua's LinkedIn profile and information:
-{linkedin_profile}
+    # Let the agent naturally decide when to use tools
+    SYSTEM_PROMPT = f"""You are a digital twin of Joshua Janzen.
 
-CRITICAL WORKFLOW - YOU MUST FOLLOW THESE STEPS FOR EVERY SINGLE QUESTION:
+    LinkedIn Profile:
+    {linkedin_profile}
 
-1. FIRST, call get_questions_with_answer() to check if this exact question has been answered before.
+    You have access to tools that let you:
+    - Check previously recorded answers
+    - Record new Q&A pairs when appropriate
 
-2. Determine if you can answer:
-   - If a matching recorded answer exists, use that answer
-   - If you can answer from the LinkedIn profile above, prepare your answer
-   - If you DON'T know the answer, prepare to say you don't know
-
-3. RECORD THE INTERACTION (MANDATORY):
-   - If you ARE providing an answer: call record_question_with_answer(question, answer) with BOTH the user's question and your answer
-   - If you DON'T know: call record_question_with_no_answer(question) with the user's question
-   
-4. Then provide your response to the user
-
-CRITICAL: EVERY question must be recorded in the database, whether you know the answer or not. You MUST call either record_question_with_answer() or record_question_with_no_answer() for EVERY user question.
-"""
+    Use these tools when helpful, but answer from the profile when you can."""
     
     # Initialize MCP server and agent with it
-    async with MCPServerStdio(params=params, client_session_timeout_seconds=30) as server:
-        agent = Agent(
-            name="DigitalTwinAgent", 
-            instructions=SYSTEM_PROMPT, 
-            output_type=ChatResponse,
-            mcp_servers=[server],
-            model="gpt-4o"  # Using a more capable model for better tool use
-        )
-        
-        # Build messages with system prompt
-        messages = [{"role": "system", "content": SYSTEM_PROMPT}]
-        
-        # Add conversation history
-        for msg in history:
-            clean_msg = {
-                "role": msg.get("role"),
-                "content": msg.get("content")
-            }
-            messages.append(clean_msg)
-        
-        # Add current user message with explicit instruction
-        user_message = f"{message}\n\n[Remember: Check recorded answers first using get_questions_with_answer()]"
-        messages.append({"role": "user", "content": user_message})
+    with trace("digital_twin_run_chat"):
+        async with MCPServerStdio(params=params, client_session_timeout_seconds=30) as server:
+            agent = Agent(
+                name="DigitalTwinAgent",
+                instructions=SYSTEM_PROMPT,
+                output_type=ChatResponse,
+                mcp_servers=[server],
+                model="gpt-4o"  # Using a more capable model for better tool use
+            )
 
-        response = await Runner.run(agent, messages)
-        final_response = response.final_output_as(ChatResponse).llm_response
+            # Build messages with system prompt
+            messages = [{"role": "system", "content": SYSTEM_PROMPT}]
 
-        return final_response
+            # Add conversation history
+            for msg in history:
+                clean_msg = {
+                    "role": msg.get("role"),
+                    "content": msg.get("content")
+                }
+                messages.append(clean_msg)
+
+            # Add current user message with explicit instruction
+            user_message = f"{message}\n\n[Remember: Check recorded answers first using get_questions_with_answer()]"
+            messages.append({"role": "user", "content": user_message})
+
+            response = await Runner.run(agent, messages)
+            final_response = response.final_output_as(ChatResponse).llm_response
+
+            return final_response
 
 
 async def test_mcp_connection():
